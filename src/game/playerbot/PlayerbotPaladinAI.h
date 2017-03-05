@@ -53,6 +53,7 @@ enum PaladinSpells
     HOLY_SHIELD_1                   = 20925,
     HOLY_SHOCK_1                    = 20473,
     HOLY_WRATH_1                    = 2812,
+    JUDGEMENT_1                     = 20271,
     JUDGEMENT_OF_JUSTICE_1          = 53407,
     JUDGEMENT_OF_LIGHT_1            = 20271,
     JUDGEMENT_OF_WISDOM_1           = 53408,
@@ -74,7 +75,7 @@ enum PaladinSpells
     SENSE_UNDEAD_1                  = 5502,
     SHADOW_RESISTANCE_AURA_1        = 19876,
     SHIELD_OF_RIGHTEOUSNESS_1       = 53600,
-    TURN_EVIL_1                     = 10326
+    TURN_EVIL_1                     = 10326,
 
     // Judgement auras on target
     JUDGEMENT_OF_WISDOM             = 20355, // rank 2: 20354, rank 1: 20186

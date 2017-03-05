@@ -720,7 +720,8 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
                             if (!botConfig.GetBoolDefault("PlayerbotAI.SellGarbage", true))
                                 continue;
 
-                            bot->GetPlayerbotAI()->SellGarbage();
+                            // changed the SellGarbage() function to support ch.SendSysMessaage()
+                            bot->GetPlayerbotAI()->SellGarbage(*bot);
                             break;
                         }
                         case GOSSIP_OPTION_STABLEPET:
@@ -787,8 +788,9 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
                 }
                 else
                 {
+                    // changed the SellGarbage() function to support ch.SendSysMessaage()
                     bot->GetPlayerbotAI()->FollowAutoReset();
-                    bot->GetPlayerbotAI()->SellGarbage();
+                    bot->GetPlayerbotAI()->SellGarbage(*bot);
                 }
             }
             return;

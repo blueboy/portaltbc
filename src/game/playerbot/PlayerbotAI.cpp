@@ -4477,7 +4477,6 @@ void PlayerbotAI::SetCombatOrder(CombatOrderType co, Unit *target)
             }
         default:
             break;
-        }
     }
 
     // Do your magic
@@ -9830,7 +9829,7 @@ void PlayerbotAI::_HandleCommandQuest(std::string &text, Player &fromPlayer)
         extractQuestIds(text, questIds);
         for (std::list<uint32>::iterator it = questIds.begin(); it != questIds.end(); it++)
         {
-            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(TAKE, *it));
+            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(TAKE_QUEST, *it));
             DEBUG_LOG(" questid (%u)",*it);
         }
         m_findNPC.push_back(UNIT_NPC_FLAG_QUESTGIVER);
