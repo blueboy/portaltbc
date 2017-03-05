@@ -26,7 +26,6 @@ enum RacialTraits
     BLOOD_FURY_WARLOCK             = 33702,
     BLOOD_FURY_SHAMAN              = 33697,
     ESCAPE_ARTIST_ALL              = 20589,
-    EVERY_MAN_FOR_HIMSELF_ALL      = 59752,
     GIFT_OF_THE_NAARU_DEATH_KNIGHT = 59545,
     GIFT_OF_THE_NAARU_HUNTER       = 59543,
     GIFT_OF_THE_NAARU_MAGE         = 59548,
@@ -74,6 +73,72 @@ enum NotableItems
     ELEMENTAL_SEAFORIUM_CHARGE = 23819
 };
 
+enum SharpeningStoneDisplayId
+{
+    ROUGH_SHARPENING_DISPLAYID          = 24673,
+    COARSE_SHARPENING_DISPLAYID         = 24674,
+    HEAVY_SHARPENING_DISPLAYID          = 24675,
+    SOLID_SHARPENING_DISPLAYID          = 24676,
+    DENSE_SHARPENING_DISPLAYID          = 24677,
+    CONSECRATED_SHARPENING_DISPLAYID    = 24674,    // will not be used because bot can not know if it will face undead targets
+    ELEMENTAL_SHARPENING_DISPLAYID      = 21072
+};
+
+enum WeightStoneDisplayId
+{
+    ROUGH_WEIGHTSTONE_DISPLAYID         = 24683,
+    COARSE_WEIGHTSTONE_DISPLAYID        = 24684,
+    HEAVY_WEIGHTSTONE_DISPLAYID         = 24685,
+    SOLID_WEIGHTSTONE_DISPLAYID         = 24686,
+    DENSE_WEIGHTSTONE_DISPLAYID         = 24687
+};
+
+enum MainSpec
+{
+    MAGE_SPEC_FIRE              = 41,
+    MAGE_SPEC_FROST             = 61,
+    MAGE_SPEC_ARCANE            = 81,
+    WARRIOR_SPEC_ARMS           = 161,
+    WARRIOR_SPEC_PROTECTION     = 163,
+    WARRIOR_SPEC_FURY           = 164,
+    ROGUE_SPEC_COMBAT           = 181,
+    ROGUE_SPEC_ASSASSINATION    = 182,
+    ROGUE_SPEC_SUBTELTY         = 183,
+    PRIEST_SPEC_DISCIPLINE      = 201,
+    PRIEST_SPEC_HOLY            = 202,
+    PRIEST_SPEC_SHADOW          = 203,
+    SHAMAN_SPEC_ELEMENTAL       = 261,
+    SHAMAN_SPEC_RESTORATION     = 262,
+    SHAMAN_SPEC_ENHANCEMENT     = 263,
+    DRUID_SPEC_FERAL            = 281,
+    DRUID_SPEC_RESTORATION      = 282,
+    DRUID_SPEC_BALANCE          = 283,
+    WARLOCK_SPEC_DESTRUCTION    = 301,
+    WARLOCK_SPEC_AFFLICTION     = 302,
+    WARLOCK_SPEC_DEMONOLOGY     = 303,
+    HUNTER_SPEC_BEASTMASTERY    = 361,
+    HUNTER_SPEC_SURVIVAL        = 362,
+    HUNTER_SPEC_MARKSMANSHIP    = 363,
+    PALADIN_SPEC_RETRIBUTION    = 381,
+    PALADIN_SPEC_HOLY           = 382,
+    PALADIN_SPEC_PROTECTION     = 383
+};
+
+enum CombatManeuverReturns
+{
+    // TODO: RETURN_NO_ACTION_UNKNOWN is not part of ANY_OK or ANY_ERROR. It's also bad form and should be eliminated ASAP.
+    RETURN_NO_ACTION_OK                 = 0x01, // No action taken during this combat maneuver, as intended (just wait, etc...)
+    RETURN_NO_ACTION_UNKNOWN            = 0x02, // No action taken during this combat maneuver, unknown reason
+    RETURN_NO_ACTION_ERROR              = 0x04, // No action taken due to error
+    RETURN_NO_ACTION_INVALIDTARGET      = 0x08, // No action taken - invalid target
+    RETURN_FINISHED_FIRST_MOVES         = 0x10, // Last action of first-combat-maneuver finished, continue onto next-combat-maneuver
+    RETURN_CONTINUE                     = 0x20, // Continue first moves; normal return value for next-combat-maneuver
+    RETURN_NO_ACTION_INSUFFICIENT_POWER = 0x40, // No action taken due to insufficient power (rage, focus, mana, runes)
+    RETURN_ANY_OK                       = 0x31, // All the OK values bitwise OR'ed
+    RETURN_ANY_ACTION                   = 0x30, // All returns that result in action (which should also be 'OK')
+    RETURN_ANY_ERROR                    = 0x4C  // All the ERROR values bitwise OR'ed
+};
+
 enum AutoEquipEnum
 {
     AUTOEQUIP_OFF  = 0,
@@ -114,27 +179,26 @@ public:
     // the master will auto set the target of the bot
     enum CombatOrderType
     {
-        ORDERS_NONE                 = 0x0000,           // no special orders given
-        ORDERS_TANK                 = 0x0001,           // bind attackers by gaining threat
-        ORDERS_ASSIST               = 0x0002,           // assist someone (dps type)
-        ORDERS_HEAL                 = 0x0004,           // concentrate on healing (no attacks, only self defense)
-        ORDERS_NODISPEL             = 0x0008,           // Dont dispel anything
-        ORDERS_PROTECT              = 0x0010,           // combinable state: check if protectee is attacked
-        ORDERS_PASSIVE              = 0x0020,           // bots do nothing
-        ORDERS_RESIST               = 0x0040,           // resist a magic school(see below for types)
-        ORDERS_PULL                 = 0x0080,           // Command to pull was given (expect bots to turn this off themselves)
-        ORDERS_PRIMARY              = 0x0007,
-        ORDERS_SECONDARY            = 0x00F8,
-        ORDERS_RESET                = 0xFFFF
-    };
+        ORDERS_NONE                 = 0x0000,   // no special orders given
+        ORDERS_TANK                 = 0x0001,   // bind attackers by gaining threat
+        ORDERS_ASSIST               = 0x0002,   // assist someone (dps type)
+        ORDERS_HEAL                 = 0x0004,   // concentrate on healing (no attacks, only self defense)
+        ORDERS_NODISPEL             = 0x0008,   // Dont dispel anything
+        ORDERS_PROTECT              = 0x0010,   // combinable state: check if protectee is attacked
+        ORDERS_PASSIVE              = 0x0020,   // bots do nothing
+        ORDERS_TEMP_WAIT_TANKAGGRO  = 0x0040,   // Wait on tank to build aggro - expect healing to continue, disable setting when tank loses focus
+        ORDERS_TEMP_WAIT_OOC        = 0x0080,   // Wait but only while OOC - wait only - combat will resume healing, dps, tanking, ...
+        ORDERS_RESIST_FIRE          = 0x0100,   // resist fire
+        ORDERS_RESIST_NATURE        = 0x0200,   // resist nature
+        ORDERS_RESIST_FROST         = 0x0400,   // resist frost
+        ORDERS_RESIST_SHADOW        = 0x0800,   // resist shadow
 
-    enum ResistType
-    {
-        SCHOOL_NONE     = 0,
-        SCHOOL_FIRE     = 1,
-        SCHOOL_NATURE   = 2,
-        SCHOOL_FROST    = 3,
-        SCHOOL_SHADOW   = 4
+        // Cumulative orders
+        ORDERS_PRIMARY              = 0x0007,
+        ORDERS_SECONDARY            = 0x0F78,
+        ORDERS_RESIST               = 0x0F00,
+        ORDERS_TEMP                 = 0x00C0,   // All orders NOT to be saved, turned off by bots (or logoff, reset, ...)
+        ORDERS_RESET                = 0xFFFF
     };
 
     enum CombatTargetType
@@ -220,15 +284,17 @@ public:
         AIT_VICTIMSELF              = 0x04,
         AIT_VICTIMNOTSELF           = 0x08      // !!! must use victim param in FindAttackers
     };
+
     struct AttackerInfo
     {
-        Unit*    attacker;            // reference to the attacker
-        Unit*    victim;              // combatant's current victim
+        Unit* attacker;               // reference to the attacker
+        Unit* victim;                 // combatant's current victim
         float threat;                 // own threat on this combatant
         float threat2;                // highest threat not caused by bot
         uint32 count;                 // number of units attacking
         uint32 source;                // 1=bot, 2=master, 3=group
     };
+
     typedef std::map<ObjectGuid, AttackerInfo> AttackerInfoList;
     typedef std::map<uint32, float> SpellRanges;
 
@@ -325,6 +391,11 @@ public:
     void findNearbyGO();
     // finds nearby creatures, whose UNIT_NPC_FLAGS match the flags specified in item list m_itemIds
     void findNearbyCreature();
+    bool IsElite(Unit* pTarget, bool isWorldBoss = false) const;
+    // Used by bots to check if their target is neutralized (polymorph, shackle or the like). Useful to avoid breaking crowd control
+    bool IsNeutralized(Unit* pTarget);
+    // Make the bots face their target
+    void FaceTarget(Unit* pTarget);
 
     void MakeSpellLink(const SpellEntry *sInfo, std::ostringstream &out);
     void MakeWeaponSkillLink(const SpellEntry *sInfo, std::ostringstream &out, uint32 skillid);
@@ -342,8 +413,8 @@ public:
 
     bool CanReceiveSpecificSpell(uint8 spec, Unit* target) const;
 
-    bool HasTool(uint32 TC);
     bool PickPocket(Unit* pTarget);
+    bool HasTool(uint32 TC);
     bool HasSpellReagents(uint32 spellId);
     void ItemCountInInv(uint32 itemid, uint32 &count);
     uint32 GetSpellCharges(uint32 spellId);
@@ -364,13 +435,14 @@ public:
     Item* FindFood() const;
     Item* FindDrink() const;
     Item* FindBandage() const;
-    Item* FindPoison() const;
     Item* FindMount(uint32 matchingRidingSkill) const;
     Item* FindItem(uint32 ItemId, bool Equipped_too = false);
     Item* FindItemInBank(uint32 ItemId);
     Item* FindKeyForLockValue(uint32 reqSkillValue);
     Item* FindBombForLockValue(uint32 reqSkillValue);
     Item* FindConsumable(uint32 displayId) const;
+    Item* FindStoneFor(Item* weapon) const;
+    bool  FindAmmo() const;
     uint8 _findItemSlot(Item* target);
     bool CanStore();
 
@@ -426,6 +498,7 @@ public:
     bool ItemStatComparison(const ItemPrototype *pProto, const ItemPrototype *pProto2);
     void Feast();
     void InterruptCurrentCastingSpell();
+    void Attack(Unit* forcedTarget = nullptr);
     void GetCombatTarget(Unit* forcedTarged = 0);
     void GetDuelTarget(Unit* forcedTarget);
     Unit* GetCurrentTarget() { return m_targetCombat; };
@@ -468,8 +541,17 @@ public:
     bool AddQuest(const uint32 entry, WorldObject* questgiver);
 
     bool IsInCombat();
+    bool IsRegenerating();
     bool IsGroupInCombat();
     Player* GetGroupTank(); // TODO: didn't want to pollute non-playerbot code but this should really go in group.cpp
+    void SetGroupCombatOrder(CombatOrderType co);
+    void ClearGroupCombatOrder(CombatOrderType co);
+    void SetGroupIgnoreUpdateTime(uint8 t);
+    bool GroupHoTOnTank();
+    bool CanPull(Player &fromPlayer);
+    bool CastPull();
+    bool GroupTankHoldsAggro();
+    bool CastNeutralize();
     void UpdateAttackerInfo();
     Unit* FindAttacker(ATTACKERINFOTYPE ait = AIT_NONE, Unit *victim = 0);
     uint32 GetAttackerCount() { return m_attackerInfo.size(); };
@@ -481,12 +563,13 @@ public:
     bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) ? true : false; }
     bool IsDPS() { return (m_combatOrder & ORDERS_ASSIST) ? true : false; }
     bool Impulse() { srand ( time(nullptr) ); return(((rand() % 100) > 50) ? true : false); }
-    ResistType GetResistType() { return this->m_resistType; }
     void SetMovementOrder(MovementOrderType mo, Unit *followTarget = 0);
     MovementOrderType GetMovementOrder() { return this->m_movementOrder; }
     void MovementReset();
     void MovementClear();
     bool IsMoving();
+
+    void SetInFront(const Unit* obj);
 
     void ItemLocalization(std::string& itemName, const uint32 itemID) const;
     void QuestLocalization(std::string& questTitle, const uint32 questID) const;
@@ -514,11 +597,13 @@ private:
     bool ExtractCommand(const std::string sLookingFor, std::string &text, bool bUseShort = false);
     // outsource commands for code clarity
     void _HandleCommandReset(std::string &text, Player &fromPlayer);
+    void _HandleCommandReport(std::string &text, Player &fromPlayer);
     void _HandleCommandOrders(std::string &text, Player &fromPlayer);
     void _HandleCommandFollow(std::string &text, Player &fromPlayer);
     void _HandleCommandStay(std::string &text, Player &fromPlayer);
     void _HandleCommandAttack(std::string &text, Player &fromPlayer);
     void _HandleCommandPull(std::string &text, Player &fromPlayer);
+    void _HandleCommandNeutralize(std::string &text, Player &fromPlayer);
     void _HandleCommandCast(std::string &text, Player &fromPlayer);
     void _HandleCommandSell(std::string &text, Player &fromPlayer);
     void _HandleCommandBuy(std::string &text, Player &fromPlayer);
@@ -575,7 +660,7 @@ private:
 
     CombatStyle m_combatStyle;
     CombatOrderType m_combatOrder;
-    ResistType m_resistType;
+
     MovementOrderType m_movementOrder;
 
     ScenarioType m_ScenarioType;
@@ -623,14 +708,11 @@ private:
     bool m_targetChanged;
     CombatTargetType m_targetType;
 
-    Unit *m_targetCombat;       // current combat target
-    Unit *m_targetAssist;       // get new target by checking attacker list of assisted player
-    Unit *m_targetProtect;      // check
+    Unit* m_targetCombat;       // current combat target
+    Unit* m_targetAssist;       // get new target by checking attacker list of assisted player
+    Unit* m_targetProtect;      // check
 
     Unit *m_followTarget;       // whom to follow in non combat situation?
-
-    uint8 gPrimOrder;
-    uint8 gSecOrder;
 
     uint32 FISHING,
         HERB_GATHERING,

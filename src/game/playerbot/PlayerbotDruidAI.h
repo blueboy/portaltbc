@@ -98,19 +98,48 @@ public:
     virtual ~PlayerbotDruidAI();
 
     // all combat actions go here
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    bool Pull();
+    uint32 Neutralize(uint8 creatureType);
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
 
-    // buff a specific player, usually a real PC who is not in group
-    bool BuffPlayer(Player *target);
+    // Utility Functions
+    bool CanPull();
+    bool CastHoTOnTank();
 
 private:
+    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+
+    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellNoRanged(nextAction, pTarget); }
+
+    // Combat Maneuver helper functions
+    CombatManeuverReturns _DoNextPVECombatManeuverBear(Unit* pTarget);
+    CombatManeuverReturns _DoNextPVECombatManeuverCat(Unit* pTarget);
+    CombatManeuverReturns _DoNextPVECombatManeuverSpellDPS(Unit* pTarget);
+    CombatManeuverReturns _DoNextPVECombatManeuverHeal();
+
     // Heals the target based off its hps
-    bool HealTarget (Unit *target);
+    CombatManeuverReturns HealPlayer (Player* target);
+
+    static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
     // Callback method to reset shapeshift forms blocking buffs and heals
     static void GoBuffForm(Player *self);
+
+    //Assumes form based on spec
+    uint8 CheckForms();
+    enum CheckForms_ReturnValues {
+        RETURN_FAIL = 0,
+        RETURN_FAIL_WAITINGONSELFBUFF,
+        RETURN_OK_NOCHANGE,
+        RETURN_OK_SHIFTING,
+        RETURN_OK_CANNOTSHIFT
+    };
 
     // druid cat/bear/dire bear/moonkin/tree of life forms
     uint32 CAT_FORM,
@@ -126,6 +155,7 @@ private:
            TIGERS_FURY,
            RAKE,
            RIP,
+           SHRED,
            FEROCIOUS_BITE,
            MAIM,
            MANGLE;
@@ -137,13 +167,16 @@ private:
            DEMORALIZING_ROAR,
            CHALLENGING_ROAR,
            GROWL,
-           ENRAGE;
+           ENRAGE,
+           FAERIE_FIRE_FERAL;
 
     // druid attacks & debuffs
     uint32 MOONFIRE,
            ROOTS,
            WRATH,
+           OMEN_OF_CLARITY,
            STARFALL,
+           HIBERNATE,
            STARFIRE,
            INSECT_SWARM,
            FAERIE_FIRE,
@@ -155,6 +188,7 @@ private:
            GIFT_OF_THE_WILD,
            THORNS,
            INNERVATE,
+           NATURES_SWIFTNESS,
            BARKSKIN;
 
     // druid heals
@@ -166,8 +200,10 @@ private:
            WILD_GROWTH,
            SWIFTMEND,
            TRANQUILITY,
+           REBIRTH,
            REVIVE,
            REMOVE_CURSE,
+           CURE_POISON,
            ABOLISH_POISON;
 
     // first aid

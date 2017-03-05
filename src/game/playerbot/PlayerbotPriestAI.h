@@ -23,6 +23,7 @@ enum PriestSpells
     DISPERSION_1                    = 47585,
     DIVINE_HYMN_1                   = 64843,
     DIVINE_SPIRIT_1                 = 14752,
+    ELUNES_GRACE_1                  = 2651,
     FADE_1                          = 586,
     FEAR_WARD_1                     = 6346,
     FLASH_HEAL_1                    = 2061,
@@ -65,11 +66,12 @@ enum PriestSpells
     SHADOW_WORD_PAIN_1              = 589,
     SHADOWFIEND_1                   = 34433,
     SHADOWFORM_1                    = 15473,
-    SHOOT_1                                          = 5019,
+    SHOOT_1                         = 5019,
     SILENCE_1                       = 15487,
     SMITE_1                         = 585,
     VAMPIRIC_EMBRACE_1              = 15286,
-    VAMPIRIC_TOUCH_1                = 34914
+    VAMPIRIC_TOUCH_1                = 34914,
+    WEAKENED_SOUL                   = 6788
 };
 //class Player;
 
@@ -80,17 +82,28 @@ public:
     virtual ~PlayerbotPriestAI();
 
     // all combat actions go here
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    uint32 Neutralize(uint8 creatureType);
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
 
-    // buff a specific player, usually a real PC who is not in group
-    bool BuffPlayer(Player *target);
+    // Utility Functions
+    bool CastHoTOnTank();
 
 private:
+    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+
+    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellWand(nextAction, pTarget, SHOOT); }
+
     // Heals the target based off its hps
-    bool HealTarget (Unit* target);
+    CombatManeuverReturns HealPlayer(Player* target);
+
+    static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
 
     // holy
     uint32 BINDING_HEAL,
@@ -108,8 +121,12 @@ private:
            PRAYER_OF_MENDING,
            RENEW,
            RESURRECTION,
+           SHACKLE_UNDEAD,
            SMITE,
-           CURE_DISEASE;
+           CURE_DISEASE,
+           ABOLISH_DISEASE,
+           PRIEST_DISPEL_MAGIC;
+
     // ranged
     uint32 SHOOT;
 
@@ -124,7 +141,9 @@ private:
            VAMPIRIC_TOUCH,
            PRAYER_OF_SHADOW_PROTECTION,
            SHADOWFIEND,
-           MIND_SEAR;
+           MIND_SEAR,
+           SHADOWFORM,
+           VAMPIRIC_EMBRACE;
 
     // discipline
     uint32 POWER_WORD_SHIELD,
@@ -139,15 +158,12 @@ private:
            PRAYER_OF_SPIRIT,
            INNER_FOCUS;
 
-    // first aid
-    uint32 RECENTLY_BANDAGED;
-
     // racial
     uint32 ARCANE_TORRENT,
+           ELUNES_GRACE,
+           ESCAPE_ARTIST,
            GIFT_OF_THE_NAARU,
            STONEFORM,
-           ESCAPE_ARTIST,
-           EVERY_MAN_FOR_HIMSELF,
            SHADOWMELD,
            WAR_STOMP,
            BERSERKING,

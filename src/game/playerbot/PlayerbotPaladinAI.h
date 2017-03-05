@@ -75,6 +75,11 @@ enum PaladinSpells
     SHADOW_RESISTANCE_AURA_1        = 19876,
     SHIELD_OF_RIGHTEOUSNESS_1       = 53600,
     TURN_EVIL_1                     = 10326
+
+    // Judgement auras on target
+    JUDGEMENT_OF_WISDOM             = 20355, // rank 2: 20354, rank 1: 20186
+    JUDGEMENT_OF_JUSTICE            = 20184,
+    JUDGEMENT_OF_THE_CRUSADER       = 20303  // rank 5: 20302, rank 4: 20301, rank 3: 20300, rank 2: 20188, rank 1: 21183
 };
 //class Player;
 
@@ -85,24 +90,42 @@ public:
     virtual ~PlayerbotPaladinAI();
 
     // all combat actions go here
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    bool Pull();
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
 
-    // buff a specific player, usually a real PC who is not in group
-    bool BuffPlayer(Player *target);
+    // Utility Functions
+    bool CanPull();
+    bool CastHoTOnTank();
 
 private:
-    // Heals the target based off its hps
-    bool HealTarget (Unit *target);
-    // Bless target using greater blessing if possible
-    bool Bless(uint32 spellId, Unit *target);
+CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 
+    // Heals the target based off its hps
+    CombatManeuverReturns HealPlayer(Player* target);
+
+    //Changes aura according to spec/orders
+    void CheckAuras();
+    //Changes Seal according to spec
+    bool CheckSealAndJudgement(Unit* target);
+    uint32 m_CurrentSeal;
+    uint32 m_CurrentJudgement;
+
+    static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
+
+    // make this public so the static function can access it. Either that or make an accessor function for each
+public:
     // Retribution
     uint32 RETRIBUTION_AURA,
            SEAL_OF_COMMAND,
            JUDGEMENT_OF_LIGHT,
+           JUDGEMENT_OF_THE_CRUSADER,
            JUDGEMENT_OF_WISDOM,
            GREATER_BLESSING_OF_WISDOM,
            GREATER_BLESSING_OF_MIGHT,
@@ -110,6 +133,7 @@ private:
            BLESSING_OF_MIGHT,
            HAMMER_OF_JUSTICE,
            RIGHTEOUS_FURY,
+           JUDGEMENT,
            CRUSADER_AURA,
            CRUSADER_STRIKE,
            AVENGING_WRATH,
@@ -137,12 +161,14 @@ private:
            SEAL_OF_RIGHTEOUSNESS,
            SEAL_OF_VENGEANCE,
            SEAL_OF_WISDOM,
+           SEAL_OF_THE_CRUSADER,           
            PURIFY,
            CLEANSE;
 
     // Protection
     uint32 GREATER_BLESSING_OF_KINGS,
            BLESSING_OF_KINGS,
+           BLESSING_OF_PROTECTION,
            HAND_OF_PROTECTION,
            SHADOW_RESISTANCE_AURA,
            DEVOTION_AURA,
@@ -160,7 +186,9 @@ private:
            BLESSING_OF_SANCTUARY,
            GREATER_BLESSING_OF_SANCTUARY,
            HAND_OF_SACRIFICE,
-           SHIELD_OF_RIGHTEOUSNESS;
+           SHIELD_OF_RIGHTEOUSNESS,
+           HAND_OF_RECKONING,
+           HAMMER_OF_THE_RIGHTEOUS;
 
     // cannot be protected
     uint32 FORBEARANCE;
@@ -173,13 +201,16 @@ private:
            GIFT_OF_THE_NAARU,
            STONEFORM,
            ESCAPE_ARTIST,
-           EVERY_MAN_FOR_HIMSELF,
            SHADOWMELD,
            BLOOD_FURY,
            WAR_STOMP,
            BERSERKING,
            WILL_OF_THE_FORSAKEN;
 
+    //Non-Stacking buffs
+    uint32 PRAYER_OF_SHADOW_PROTECTION;
+
+private:
     uint32 SpellSequence, CombatCounter, HealCounter;
 };
 

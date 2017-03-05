@@ -55,6 +55,9 @@ enum WarriorSpells
     SHIELD_SLAM_1                   = 23922,
     SHIELD_WALL_1                   = 871,
     SHOCKWAVE_1                     = 46968,
+    SHOOT_BOW_1                     = 2480,
+    SHOOT_GUN_1                     = 7918,
+    SHOOT_XBOW_1                    = 7919,
     SLAM_1                          = 1464,
     SPELL_REFLECTION_1              = 23920,
     SUNDER_ARMOR_1                  = 7386,
@@ -75,27 +78,100 @@ public:
     virtual ~PlayerbotWarriorAI();
 
     // all combat actions go here
-    bool DoFirstCombatManeuver(Unit*);
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    bool Pull();
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
 
+    //Buff/rebuff shouts
+    void CheckShouts();
+
+    // Utility Functions
+    bool CanPull();
+
 private:
+    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+    
     // ARMS
-    uint32 BATTLE_STANCE, CHARGE, HEROIC_STRIKE, REND, THUNDER_CLAP, HAMSTRING, MOCKING_BLOW, RETALIATION, SWEEPING_STRIKES, MORTAL_STRIKE, BLADESTORM, HEROIC_THROW, SHATTERING_THROW;
+    uint32 BATTLE_STANCE,
+            CHARGE,
+            HEROIC_STRIKE,
+            REND,
+            THUNDER_CLAP,
+            HAMSTRING,
+            MOCKING_BLOW,
+            RETALIATION,
+            SWEEPING_STRIKES,
+            MORTAL_STRIKE,
+            BLADESTORM,
+            HEROIC_THROW,
+            SHATTERING_THROW;
 
     // PROTECTION
-    uint32 DEFENSIVE_STANCE, BLOODRAGE, SUNDER_ARMOR, TAUNT, SHIELD_BASH, REVENGE, SHIELD_BLOCK, DISARM, SHIELD_WALL, SHIELD_SLAM, VIGILANCE, DEVASTATE, SHOCKWAVE, CONCUSSION_BLOW, SPELL_REFLECTION, LAST_STAND;
+    uint32 DEFENSIVE_STANCE,
+            BLOODRAGE,
+            SUNDER_ARMOR,
+            TAUNT,
+            SHIELD_BASH,
+            REVENGE,
+            SHIELD_BLOCK,
+            DISARM,
+            SHIELD_WALL,
+            SHIELD_SLAM,
+            VIGILANCE,
+            DEVASTATE,
+            SHOCKWAVE,
+            CONCUSSION_BLOW,
+            SPELL_REFLECTION,
+            LAST_STAND;
 
     // FURY
-    uint32 BERSERKER_STANCE, BATTLE_SHOUT, DEMORALIZING_SHOUT, OVERPOWER, CLEAVE, INTIMIDATING_SHOUT, EXECUTE, CHALLENGING_SHOUT, SLAM, INTERCEPT, DEATH_WISH, BERSERKER_RAGE, WHIRLWIND, PUMMEL, BLOODTHIRST, RECKLESSNESS, RAMPAGE, HEROIC_FURY, COMMANDING_SHOUT, ENRAGED_REGENERATION, PIERCING_HOWL;
+    uint32 BERSERKER_STANCE,
+            BATTLE_SHOUT,
+            DEMORALIZING_SHOUT,
+            OVERPOWER,
+            CLEAVE,
+            INTIMIDATING_SHOUT,
+            EXECUTE,
+            CHALLENGING_SHOUT,
+            SLAM,
+            INTERCEPT,
+            DEATH_WISH,
+            BERSERKER_RAGE,
+            WHIRLWIND,
+            PUMMEL,
+            BLOODTHIRST,
+            RECKLESSNESS,
+            RAMPAGE,
+            HEROIC_FURY,
+            COMMANDING_SHOUT,
+            ENRAGED_REGENERATION,
+            PIERCING_HOWL;
 
     // first aid
     uint32 RECENTLY_BANDAGED;
 
     // racial
-    uint32 ARCANE_TORRENT, GIFT_OF_THE_NAARU, STONEFORM, ESCAPE_ARTIST, EVERY_MAN_FOR_HIMSELF, SHADOWMELD, BLOOD_FURY, WAR_STOMP, BERSERKING, WILL_OF_THE_FORSAKEN;
+    uint32 ARCANE_TORRENT,
+        GIFT_OF_THE_NAARU,
+        STONEFORM,
+        ESCAPE_ARTIST,
+        SHADOWMELD,
+        BLOOD_FURY,
+        WAR_STOMP,
+        BERSERKING,
+        WILL_OF_THE_FORSAKEN;
+
+    // general
+    uint32 SHOOT,
+        SHOOT_BOW,
+        SHOOT_GUN,
+        SHOOT_XBOW;
 
     uint32 SpellSequence;
 };

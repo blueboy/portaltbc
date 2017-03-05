@@ -10,6 +10,14 @@ enum
     SPELL_ARCANE
 };
 
+enum ManaGemIds
+{
+    MANA_RUBY_DISPLAYID             = 7045,
+    MANA_CITRINE_DISPLAYID          = 6496,
+    MANA_AGATE_DISPLAYID            = 6851,
+    MANA_JADE_DISPLAYID             = 7393
+};
+
 enum MageSpells
 {
     AMPLIFY_MAGIC_1                 = 1008,
@@ -23,6 +31,7 @@ enum MageSpells
     BLAST_WAVE_1                    = 11113,
     BLINK_1                         = 1953,
     BLIZZARD_1                      = 10,
+    CLEARCASTING_1                  = 12536,
     COLD_SNAP_1                     = 11958,
     COMBUSTION_1                    = 11129,
     CONE_OF_COLD_1                  = 120,
@@ -58,6 +67,7 @@ enum MageSpells
     MANA_SHIELD_1                   = 1463,
     MIRROR_IMAGE_1                  = 55342,
     MOLTEN_ARMOR_1                  = 30482,
+    POLYMORPH_1                     = 118,
     PRESENCE_OF_MIND_1              = 12043,
     PYROBLAST_1                     = 11366,
     REMOVE_CURSE_MAGE_1             = 475,
@@ -69,6 +79,19 @@ enum MageSpells
     SPELLSTEAL_1                    = 30449,
     SUMMON_WATER_ELEMENTAL_1        = 31687
 };
+
+enum MageTalents
+{
+    IMPROVED_SCORCH_1               = 11095,
+    IMPROVED_SCORCH_2               = 12872,
+    IMPROVED_SCORCH_3               = 12873
+};
+
+static const uint32 uiImprovedScorch[3] =
+{
+    IMPROVED_SCORCH_1, IMPROVED_SCORCH_2, IMPROVED_SCORCH_3
+};
+
 //class Player;
 
 class MANGOS_DLL_SPEC PlayerbotMageAI : PlayerbotClassAI
@@ -78,24 +101,39 @@ public:
     virtual ~PlayerbotMageAI();
 
     // all combat actions go here
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    uint32 Neutralize(uint8 creatureType);
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
 
-    // buff a specific player, usually a real PC who is not in group
-    bool BuffPlayer(Player *target);
-
 private:
+    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+    Item* FindManaGem() const;
+
+    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellWand(nextAction, pTarget, SHOOT); }
+
+    static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
+
+    uint8 CheckFrostCooldowns();
+
     // ARCANE
     uint32 ARCANE_MISSILES,
            ARCANE_EXPLOSION,
            COUNTERSPELL,
+           EVOCATION,
+           POLYMORPH,
+           PRESENCE_OF_MIND,
            SLOW,
            ARCANE_BARRAGE,
            ARCANE_BLAST,
            MIRROR_IMAGE,
            ARCANE_POWER;
+
     // ranged
     uint32 SHOOT;
 
@@ -104,6 +142,8 @@ private:
            FIRE_BLAST,
            FLAMESTRIKE,
            SCORCH,
+           FIRE_VULNERABILITY,
+           IMPROVED_SCORCH,
            PYROBLAST,
            BLAST_WAVE,
            COMBUSTION,
@@ -137,17 +177,14 @@ private:
            DALARAN_BRILLIANCE,
            MANA_SHIELD,
            DAMPEN_MAGIC,
-           AMPLIFY_MAGIC;
-
-    // first aid
-    uint32 RECENTLY_BANDAGED;
+           AMPLIFY_MAGIC,
+           MAGE_REMOVE_CURSE;
 
     // racial
     uint32 ARCANE_TORRENT,
            GIFT_OF_THE_NAARU,
            STONEFORM,
            ESCAPE_ARTIST,
-           EVERY_MAN_FOR_HIMSELF,
            SHADOWMELD,
            BLOOD_FURY,
            WAR_STOMP,
@@ -159,7 +196,8 @@ private:
            LastSpellFire,
            LastSpellFrost,
            CONJURE_WATER,
-           CONJURE_FOOD;
+           CONJURE_FOOD,
+           CONJURE_MANA_GEM;
 };
 
 #endif
