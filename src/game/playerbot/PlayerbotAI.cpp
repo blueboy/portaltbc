@@ -131,7 +131,7 @@ Player* PlayerbotAI::GetMaster() const
 bool PlayerbotAI::CanReachWithSpellAttack(Unit* target)
 {
     bool inrange = false;
-    float dist = m_bot->GetCombatDistance(target, false);   //hlarsen test
+    float dist = m_bot->GetCombatDistance(target, false);
 
     for (SpellRanges::iterator itr = m_spellRangeMap.begin(); itr != m_spellRangeMap.end(); ++itr)
     {
@@ -172,7 +172,7 @@ bool PlayerbotAI::In_Reach(Unit* Target, uint32 spellId)
         return false;
 
     float range = 0;
-    float dist = m_bot->GetCombatDistance(Target, true);    //hlarsen test
+    float dist = m_bot->GetCombatDistance(Target, false);
     SpellRanges::iterator it;
     it = m_spellRangeMap.find(spellId);
     (it != m_spellRangeMap.end()) ? range = it->second : range = 0;
