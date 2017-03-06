@@ -108,6 +108,7 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 
     // Hunter
+    bool IsTargetEnraged(Unit* pTarget);
     bool m_petSummonFailed;
     bool m_rangedCombat;
     bool m_has_ammo;
@@ -139,13 +140,15 @@ private:
         CHIMERA_SHOT,
         VOLLEY,
         BLACK_ARROW,
-        KILL_SHOT;
+        KILL_SHOT,
+        TRANQUILIZING_SHOT;
     
     uint32 RAPTOR_STRIKE,
         WING_CLIP,
         MONGOOSE_BITE,
         DISENGAGE,
-        DETERRENCE;
+        DETERRENCE,
+        FEIGN_DEATH;
 
     uint32 BEAR_TRAP,
         FREEZING_TRAP,

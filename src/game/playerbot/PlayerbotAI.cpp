@@ -1491,7 +1491,7 @@ void PlayerbotAI::SendOrders(Player& /*player*/)
         else if (m_movementOrder == MOVEMENT_STAY)
             out << "STAY";
         out << ". Got " << m_attackerInfo.size() << " attacker(s) in list.";
-        out << " Next action in " << m_ignoreAIUpdatesUntilTime - CurrentTime() << "sec.";  //hlarsen classic branch has this as -time(0), look into it
+        out << " Next action in " << m_ignoreAIUpdatesUntilTime - CurrentTime() << "sec.";
     }
 
     TellMaster(out.str().c_str());
@@ -2739,7 +2739,7 @@ Item* PlayerbotAI::FindBandage() const
             if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
                 continue;
 
-            if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == ITEM_SUBCLASS_BANDAGE)
+            if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == ITEM_SUBCLASS_FOOD)
                 return pItem;
         }
     }
@@ -2758,7 +2758,7 @@ Item* PlayerbotAI::FindBandage() const
                     if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
                         continue;
 
-                    if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == ITEM_SUBCLASS_BANDAGE)
+                    if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == ITEM_SUBCLASS_FOOD)
                         return pItem;
                 }
             }
@@ -2850,6 +2850,49 @@ Item* PlayerbotAI::FindStoneFor(Item* weapon) const
             if (stone)
                 return stone;
         }
+    }
+
+    return nullptr;
+}
+
+static const uint32 uPriorizedManaPotionIds[8] =
+{
+    MAJOR_MANA_POTION, MAJOR_REJUVENATION_POTION, SUPERIOR_MANA_POTION,
+    GREATER_MANA_POTION, MANA_POTION, LESSER_MANA_POTION,
+    MINOR_MANA_POTION, MINOR_REJUVENATION_POTION
+};
+
+/**
+ * FindManaRegenItem()
+ * return Item* Returns items like runes or potion that can help the bot to instantly resplenish some of its mana
+ *
+ * return nullptr if no relevant item is found in bot inventory, else return a consumable item providing mana
+ *
+ */
+Item* PlayerbotAI::FindManaRegenItem() const
+{
+    Item* manaRegen;
+    // If bot has enough health, try to use a Demonic or Dark Rune
+    // to avoid triggering the health potion cooldown with a mana potion
+    if (m_bot->GetHealth() > 1500)
+    {
+        // First try a Demonic Rune as they are BoP
+        manaRegen = FindConsumable(DEMONIC_RUNE);
+        if (manaRegen)
+            return manaRegen;
+        else
+        {
+            manaRegen = FindConsumable(DARK_RUNE);
+            if (manaRegen)
+                return manaRegen;
+        }
+    }
+    // Else use mana potion (and knowingly trigger the health potion cooldown)
+    for (uint8 i = 0; i < countof(uPriorizedManaPotionIds); ++i)
+    {
+        manaRegen = FindConsumable(uPriorizedManaPotionIds[i]);
+        if (manaRegen)
+            return manaRegen;
     }
 
     return nullptr;
@@ -4369,7 +4412,7 @@ void PlayerbotAI::BotDataRestore()
 */
 void PlayerbotAI::CombatOrderRestore()
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT bot_primary_order,bot_secondary_order,primary_target,secondary_target,pname,sname,combat_delay,auto_follow FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetGUIDLow());
+    QueryResult* result = CharacterDatabase.PQuery("SELECT combat_order,primary_target,secondary_target,pname,sname,combat_delay,auto_follow FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetGUIDLow());
 
     if (!result)
     {
@@ -4386,6 +4429,7 @@ void PlayerbotAI::CombatOrderRestore()
     std::string pname = fields[3].GetString();
     std::string sname = fields[4].GetString();
     m_DelayAttack = fields[5].GetUInt8();
+    m_FollowAutoGo = fields[6].GetUInt8();
     gPrimtarget = ObjectAccessor::GetUnit(*m_bot->GetMap()->GetWorldObject(PrimtargetGUID), PrimtargetGUID);
     gSectarget = ObjectAccessor::GetUnit(*m_bot->GetMap()->GetWorldObject(SectargetGUID), SectargetGUID);
     delete result;
@@ -4394,12 +4438,23 @@ void PlayerbotAI::CombatOrderRestore()
     //ObjectGuid NotargetGUID = m_bot->GetObjectGuid();
     //target = ObjectAccessor::GetUnit(*m_bot, NotargetGUID);
     
+    if (m_FollowAutoGo == FOLLOWAUTOGO_OFF)
+    {
+        DistOverRide = 0; //set initial adjustable follow settings
+        IsUpOrDown = 0;
+        gTempDist = 0.5f;
+        gTempDist2 = 1.0f;
+        SetMovementOrder(MOVEMENT_FOLLOW, GetMaster());
+    }
+    
     if (combatOrders & ORDERS_PRIMARY) SetCombatOrder(combatOrders, gPrimtarget);
     if (combatOrders & ORDERS_SECONDARY) SetCombatOrder(combatOrders, gSectarget);
 }
 
 void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit *target)
 {
+    // TellMaster("SetCombatOrderByStr: order %s", str);
+
     CombatOrderType co;
     if (str == "tank")              co = ORDERS_TANK;
     else if (str == "assist")       co = ORDERS_ASSIST;
@@ -5290,7 +5345,8 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
             m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);          // uni-cast spell
     }
 
-    SetIgnoreUpdateTime(CastTime + 1);
+    // Some casting times are negative so set ignore update time to 1 sec to avoid stucking the bot AI
+    SetIgnoreUpdateTime(std::max(CastTime, 0.0f) + 1);
 
     return true;
 }
@@ -6770,6 +6826,52 @@ void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
     m_bot->GetSession()->QueuePacket(std::move(packet));
 }
 
+static const uint32 uPriorizedHealingItemIds[14] =
+{
+    HEALTHSTONE_DISPLAYID, MAJOR_HEALING_POTION, WHIPPER_ROOT_TUBER, NIGHT_DRAGON_BREATH, LIMITED_INVULNERABILITY_POTION, GREATER_DREAMLESS_SLEEP_POTION,
+    SUPERIOR_HEALING_POTION, CRYSTAL_RESTORE, DREAMLESS_SLEEP_POTION, GREATER_HEALING_POTION, HEALING_POTION, LESSER_HEALING_POTION, DISCOLORED_HEALING_POTION, MINOR_HEALING_POTION,
+};
+
+/**
+ * TryEmergency()
+ * Playerbot function to select an item that the bot will use to heal itself on low health without waiting for a heal from a healer
+ *
+ * params:pAttacker Unit* the creature that is attacking the bot
+ * return nothing
+ */
+void PlayerbotAI::TryEmergency(Unit* pAttacker)
+{
+    // Do not use consumable if bot can heal self
+    if (IsHealer() && GetManaPercent() > 20)
+        return;
+
+    // If bot does not have aggro: use bandage instead of potion/stone/crystal
+    if (!pAttacker && !m_bot->HasAura(11196)) // Recently bandaged
+    {
+        Item* bandage = FindBandage();
+        if (bandage)
+        {
+            SetIgnoreUpdateTime(8);
+            UseItem(bandage);
+            return;
+        }
+    }
+
+    // Else loop over the list of health consumable to pick one
+    Item* healthItem;
+    for (uint8 i = 0; i < countof(uPriorizedHealingItemIds); ++i)
+    {
+        healthItem = FindConsumable(uPriorizedHealingItemIds[i]);
+        if (healthItem)
+        {
+            UseItem(healthItem);
+            return;
+        }
+    }
+
+    return;
+}
+
 // submits packet to use an item
 void PlayerbotAI::EquipItem(Item* src_Item)
 {
@@ -8077,6 +8179,10 @@ void PlayerbotAI::_HandleCommandReset(std::string &text, Player &fromPlayer)
 
 void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
 {
+    std::string msg = "_HandleCommandOrders processing order: ";
+    msg += text;
+    SendWhisper(msg, fromPlayer);
+
     if (ExtractCommand("delay", text))
     {
         uint32 gdelay;
@@ -8106,7 +8212,7 @@ void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
 
         QueryResult *resultlvl = CharacterDatabase.PQuery("SELECT guid FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetObjectGuid().GetCounter());
         if (!resultlvl)
-            CharacterDatabase.DirectPExecute("INSERT INTO playerbot_saved_data (guid,bot_primary_order,bot_secondary_order,primary_target,secondary_target,pname,sname,combat_delay,auto_follow,autoequip) VALUES ('%u',0,0,0,0,'','',0,0,false)", m_bot->GetObjectGuid().GetCounter());
+            CharacterDatabase.DirectPExecute("INSERT INTO playerbot_saved_data (guid,combat_order,primary_target,secondary_target,pname,sname,combat_delay,auto_follow,autoequip) VALUES ('%u',0,0,0,'','',0,0,false)", m_bot->GetObjectGuid().GetCounter());
         else
             delete resultlvl;
 
@@ -8135,10 +8241,9 @@ void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
                 SetCombatOrder(ORDERS_PROTECT, target);
             else if (assist != std::string::npos)
                 SetCombatOrder(ORDERS_ASSIST, target);
-            return;
         }
-        SetCombatOrderByStr(text, target);
-        return;
+        else
+            SetCombatOrderByStr(text, target);  
     }
     else if (text != "")
     {

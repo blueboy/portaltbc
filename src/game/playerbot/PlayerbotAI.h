@@ -93,6 +93,41 @@ enum WeightStoneDisplayId
     DENSE_WEIGHTSTONE_DISPLAYID         = 24687
 };
 
+enum ManaPotionsId
+{
+    MINOR_MANA_POTION                   = 15715,
+    LESSER_MANA_POTION                  = 15716,
+    MANA_POTION                         = 15717,
+    GREATER_MANA_POTION                 = 15718,
+    SUPERIOR_MANA_POTION                = 24151,
+    MAJOR_MANA_POTION                   = 21672,
+    MINOR_REJUVENATION_POTION           = 2345,
+    MAJOR_REJUVENATION_POTION           = 18253
+};
+
+enum ManaRunesId
+{
+    DEMONIC_RUNE                        = 22952,
+    DARK_RUNE                           = 32905
+};
+
+enum HealingItemDisplayId
+{
+    MAJOR_HEALING_POTION                = 24152,
+    WHIPPER_ROOT_TUBER                  = 21974,
+    NIGHT_DRAGON_BREATH                 = 21975,
+    LIMITED_INVULNERABILITY_POTION      = 24213,
+    GREATER_DREAMLESS_SLEEP_POTION      = 17403,
+    SUPERIOR_HEALING_POTION             = 15714,
+    CRYSTAL_RESTORE                     = 2516,
+    DREAMLESS_SLEEP_POTION              = 17403,
+    GREATER_HEALING_POTION              = 15713,
+    HEALING_POTION                      = 15712,
+    LESSER_HEALING_POTION               = 15711,
+    DISCOLORED_HEALING_POTION           = 15736,
+    MINOR_HEALING_POTION                = 15710
+};
+
 enum MainSpec
 {
     MAGE_SPEC_FIRE              = 41,
@@ -442,6 +477,7 @@ public:
     Item* FindBombForLockValue(uint32 reqSkillValue);
     Item* FindConsumable(uint32 displayId) const;
     Item* FindStoneFor(Item* weapon) const;
+    Item* FindManaRegenItem() const;
     bool  FindAmmo() const;
     uint8 _findItemSlot(Item* target);
     bool CanStore();
@@ -466,6 +502,8 @@ public:
     void UseItem(Item *item, uint8 targetInventorySlot);
     void UseItem(Item *item, Unit *target);
     void UseItem(Item *item);
+
+    void TryEmergency(Unit* pAttacker);
 
     void PlaySound(uint32 soundid);
     void Announce(AnnounceFlags msg);
