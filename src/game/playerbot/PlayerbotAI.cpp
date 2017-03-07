@@ -2284,10 +2284,15 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             for (LootItemList::const_iterator lootItr = lootList.begin(); lootItr != lootList.end(); ++lootItr)
             {
                 LootItem* lootItem = *lootItr;
+                
+                // sLog.outError("PlayerbotAI: attempting to loot item %u with slot type %d", lootItem->itemId, lootItem->GetSlotTypeForSharedLoot(m_bot, loot));
 
                 // Skip non lootable items
-                if (lootItem->GetSlotTypeForSharedLoot(m_bot, loot) != LOOT_SLOT_NORMAL)
+                if (lootItem->GetSlotTypeForSharedLoot(m_bot, loot) != LOOT_SLOT_NORMAL && lootItem->GetSlotTypeForSharedLoot(m_bot, loot) != LOOT_SLOT_OWNER)
+                {
+                    // sLog.outError("PlayerbotAI: skipping non lootable item");
                     continue;
+                }
 
                 // If bot is skinning or has collect all orders: autostore all items
                 // else bot has order to only loot quest or useful items
@@ -2324,7 +2329,6 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
             // release loot
             loot->Release(m_bot);
-
             return;
         }
 
@@ -5050,7 +5054,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
     // bot was in combat recently - loot now
     if (m_botState == BOTSTATE_COMBAT)
     {
-       if (GetCombatOrder() & ORDERS_TEMP)
+        if (GetCombatOrder() & ORDERS_TEMP)
         {
             if (GetCombatOrder() & ORDERS_TEMP_WAIT_TANKAGGRO)
                 TellMaster("I was still waiting for the tank to gain aggro, but that doesn't make sense anymore...");
