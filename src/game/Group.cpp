@@ -314,7 +314,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
 uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 {
-    //Playerbot mod - if master leaves group, all bots leave group
+    // Playerbot mod - if master leaves group, all bots leave group
     {
         Player* const player = sObjectMgr.GetPlayer(guid);
         if (player && player->GetPlayerbotMgr())

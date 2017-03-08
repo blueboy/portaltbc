@@ -4,7 +4,14 @@
 #include "PlayerbotClassAI.h"
 
 #define SOUL_SHARD 6265
-#define MAX_SHARD_COUNT 4 // Maximum soul shard count bot should keep
+#define SPELLSTONE 5522
+#define GREATER_SPELLSTONE 13602
+#define MAJOR_SPELLSTONE 13603
+#define LESSER_FIRESTONE 1254
+#define FIRESTONE 13699
+#define GREATER_FIRESTONE 13700
+#define MAJOR_FIRESTONE 13701
+#define MAX_SHARD_COUNT 15 // Maximum soul shard count bot should keep
 
 enum
 {
@@ -115,7 +122,8 @@ enum WarlockSpells
     SHADOWBURN_1                    = 17877,
     SHADOWFLAME_1                   = 47897,
     SHADOWFURY_1                    = 30283,
-    SHOOT_3                                          = 5019,
+    SHOOT_3                         = 5019,
+    SIPHON_LIFE_1                   = 18265,
     SOUL_FIRE_1                     = 6353,
     SOUL_LINK_1                     = 19028,
     SOULSHATTER_1                   = 29858,
@@ -136,7 +144,9 @@ public:
     virtual ~PlayerbotWarlockAI();
 
     // all combat actions go here
-    void DoNextCombatManeuver(Unit*);
+    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+    uint32 Neutralize(uint8 creatureType);
 
     // all non combat actions go here, ex buffs, heals, rezzes
     void DoNonCombatActions();
@@ -145,20 +155,33 @@ public:
     //void BuffPlayer(Player *target);
 
 private:
+    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+
+    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellWand(nextAction, pTarget, SHOOT); }
+
+    bool CheckCurse(Unit* pTarget);
+    void CheckDemon();
 
     // CURSES
     uint32 CURSE_OF_WEAKNESS,
            CURSE_OF_AGONY,
            CURSE_OF_EXHAUSTION,
+           CURSE_OF_RECKLESSNESS,
+           CURSE_OF_SHADOW,
            CURSE_OF_TONGUES,
            CURSE_OF_THE_ELEMENTS,
            CURSE_OF_DOOM;
+
     // ranged
     uint32 SHOOT;
 
     // AFFLICTION
-    uint32 CORRUPTION,
-        DRAIN_SOUL,
+    uint32 AMPLIFY_CURSE,
+           CORRUPTION,
+           DRAIN_SOUL,
            DRAIN_LIFE,
            DRAIN_MANA,
            LIFE_TAP,
@@ -167,7 +190,8 @@ private:
            SEED_OF_CORRUPTION,
            DARK_PACT,
            HOWL_OF_TERROR,
-           FEAR;
+           FEAR,
+           SIPHON_LIFE;
 
     // DESTRUCTION
     uint32 SHADOW_BOLT,
@@ -184,19 +208,22 @@ private:
            SHADOWBURN;
 
     // DEMONOLOGY
-    uint32 DEMON_SKIN,
+    uint32 BANISH,
+           DEMON_SKIN,
            DEMON_ARMOR,
            DEMONIC_EMPOWERMENT,
            SHADOW_WARD,
            FEL_ARMOR,
            SOULSHATTER,
+           ENSLAVE_DEMON,
            SOUL_LINK,
            SOUL_LINK_AURA,
            HEALTH_FUNNEL,
            DETECT_INVISIBILITY,
            CREATE_FIRESTONE,
            CREATE_SOULSTONE,
-           CREATE_HEALTHSTONE;
+           CREATE_HEALTHSTONE,
+           CREATE_SPELLSTONE;
 
     // DEMON SUMMON
     uint32 SUMMON_IMP,
@@ -232,7 +259,6 @@ private:
            GIFT_OF_THE_NAARU,
            STONEFORM,
            ESCAPE_ARTIST,
-           EVERY_MAN_FOR_HIMSELF,
            SHADOWMELD,
            BLOOD_FURY,
            WAR_STOMP,
@@ -245,8 +271,8 @@ private:
            LastSpellDestruction;
 
     uint32 m_lastDemon;      // Last demon entry used for spell initialization
-    uint32 m_demonOfChoice;  // Preferred demon entry
     bool m_isTempImp;        // True if imp summoned temporarily until soul shard acquired for demon of choice.
+    uint32 m_CurrentCurse;   // Curse currently active on bot's target
 };
 
 #endif

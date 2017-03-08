@@ -1327,7 +1327,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendCanTakeQuestResponse(uint32 msg) const;
         void SendQuestConfirmAccept(Quest const* pQuest, Player* pReceiver) const;
         void SendPushToPartyResponse(Player* pPlayer, uint32 msg) const;
-        void SendQuestUpdateAddItem(Quest const* pQuest, uint32 item_idx, uint32 count) const;
+        void SendQuestUpdateAddItem(Quest const* pQuest, uint32 item_idx, uint32 current, uint32 count);
         void SendQuestUpdateAddCreatureOrGo(Quest const* pQuest, ObjectGuid guid, uint32 creatureOrGO_idx, uint32 count);
         void SendQuestGiverStatusMultiple() const;
 
@@ -1342,14 +1342,16 @@ class MANGOS_DLL_SPEC Player : public Unit
         void AddTimedQuest(uint32 quest_id) { m_timedquests.insert(quest_id); }
         void RemoveTimedQuest(uint32 quest_id) { m_timedquests.erase(quest_id); }
 
+        PlayerMails::reverse_iterator GetMailRBegin() { return m_mail.rbegin();}
+        PlayerMails::reverse_iterator GetMailREnd() { return m_mail.rend();}
+        void UpdateMail();
+
         // Playerbot mod
         void chompAndTrim(std::string& str);
         bool getNextQuestId(const std::string& pString, unsigned int& pStartPos, unsigned int& pId);
         void skill(std::list<uint32>& m_spellsToLearn);
         bool requiredQuests(const char* pQuestIdString);
-        PlayerMails::reverse_iterator GetMailRBegin() { return m_mail.rbegin();}
-        PlayerMails::reverse_iterator GetMailREnd() { return m_mail.rend();}
-        void UpdateMail();
+        uint32 GetSpec();
 
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
